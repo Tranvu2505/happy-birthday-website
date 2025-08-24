@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAPPY BIRTHDAY Animation with Heart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Dancing Script', cursive;
+        }
+        canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        .text-container {
+            position: absolute;
+            z-index: 1001;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -30%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 300px;
+            height: auto;
+        }
+        .text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3em;
+            background: linear-gradient(45deg, #FFD700, #FF69B4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            animation: fadeInOut 20s infinite;
+            position: absolute;
+            transform: translateY(0);
+        }
+        .text:nth-child(1) { animation-delay: 0s; }
+        .text:nth-child(2) { animation-delay: 4s; }
+        .text:nth-child(3) { animation-delay: 8s; }
+        .text:nth-child(4) { animation-delay: 12s; }
+        .final-show {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #FF69B4, #00CED1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: finalFadeInOut 20s infinite;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-15px); }
+            5% { opacity: 1; transform: translateY(0); }
+            15% { opacity: 1; transform: translateY(0); }
+            15.5% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 0; }
+        }
+        @keyframes finalFadeInOut {
+            0% { opacity: 0; }
+            80% { opacity: 0; }
+            81% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 0; }
+            89% { opacity: 1; }
+            93% { opacity: 0; }
+            97% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(15px); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pinkboard"></canvas>
+    <canvas id="textCanvas"></canvas>
+    <div class="text-container">
+        <div class="text">HAPPY BIRTHDAY</div>
+        <div class="text">Hạ Nhi</div>
+        <div class="text">24.06.2000</div>
+        <div class="text">25 tuổi</div>
+        <div class="text final-show">HAPPY BIRTHDAY<br>Hạ Nhi<br>24.06.2000<br>25 tuổi</div>
+    </div>
+    <audio id="backgroundMusic" autoplay loop>
+        <source src="sn1.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <script>
+        // Text rain effect
+        const textCanvas = document.getElementById('textCanvas');
+        const textCtx = textCanvas.getContext('2d');
+        textCanvas.width = window.innerWidth;
+        textCanvas.height = window.innerHeight;
+        const text = "HAPPY BIRTHDAY";
+        const chars = text.split('');
+        const textParticles = [];
+
+        class TextParticle {
+            constructor(char) {
+                this.char = char;
+                this.x = Math.random() * textCanvas.width;
+                this.y = Math.random() * -textCanvas.height;
+                this.speed = 1 + Math.random() * 3;
+                this.color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > textCanvas.height) {
+                    this.y = -20;
+                    this.x = Math.random() * textCanvas.width;
+                }
+            }
+            draw() {
+                textCtx.fillStyle = this.color;
+                textCtx.font = '20px Arial';
+                textCtx.fillText(this.char, this.x, this.y);
+            }
+        }
+
+        function initTextParticles() {
+            for (let i = 0; i < 100; i++) {
+                const char = chars[Math.floor(Math.random() * chars.length)];
+                textParticles.push(new TextParticle(char));
+            }
+        }
+
+        function animateText() {
+            textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+            textParticles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateText);
+        }
+
+        initTextParticles();
+        animateText();
+
+        window.addEventListener('resize', () => {
+            textCanvas.width = window.innerWidth;
+            textCanvas.height = window.innerHeight;
+        });
+
+        // Heart effect
+        var settings = {
+            particles: {
+                length: 500,
+                duration: 2,
+                velocity: 100,
+                effect: -0.75,
+                size: 30,
+            },
+        };
+
+        var Point = (function() {
+            function Point(x, y) {
+                this.x = (typeof x !== 'undefined') ? x : 0;
+                this.y = (typeof y !== 'undefined') ? y : 0;
+            }
+            Point.prototype.clone = function() {
+                return new Point(this.x, this.y);
+            };
+            Point.prototype.length = function(length) {
+                if (typeof length == 'undefined')
+                    return Math.sqrt(this.x * this.x + this.y * this.y);
+                this.normalize();
+                this.x *= length;
+                this.y *= length;
+                return this;
+            };
+            Point.prototype.normalize = function() {
+                var length = this.length();
+                this.x /= length;
+                this.y /= length;
+                return this;
+            };
+            return Point;
+        })();
+
+        var Particle = (function() {
+            function Particle() {
+                this.position = new Point();
+                this.velocity = new Point();
+                this.acceleration = new Point();
+                this.age = 0;
+            }
+            Particle.prototype.initialize = function(x, y, dx, dy) {
+                this.position.x = x;
+                this.position.y = y;
+                this.velocity.x = dx;
+                this.velocity.y = dy;
+                this.acceleration.x = dx * settings.particles.effect;
+                this.acceleration.y = dy * settings.particles.effect;
+                this.age = 0;
+            };
+            Particle.prototype.update = function(deltaTime) {
+                this.position.x += this.velocity.x * deltaTime;
+                this.position.y += this.velocity.y * deltaTime;
+                this.velocity.x += this.acceleration.x * deltaTime;
+                this.velocity.y += this.acceleration.y * deltaTime;
+                this.age += deltaTime;
+            };
+            Particle.prototype.draw = function(context, image) {
+                const time = performance.now() / 1000;
+                const beatScale = 1 + 0.4 * Math.sin(time * 2 * Math.PI);
+                function ease(t) {
+                    return (--t) * t * t + 1;
+                }
+                var size = image.width * ease(this.age / settings.particles.duration) * beatScale;
+                context.globalAlpha = 1 - this.age / settings.particles.duration;
+                context.drawImage(image, this.position.x - size / 2, this.position.y - size / 2, size, size);
+            };
+            return Particle;
+        })();
+
+        var ParticlePool = (function() {
+            var particles, firstActive = 0, firstFree = 0, duration = settings.particles.duration;
+            function ParticlePool(length) {
+                particles = new Array(length);
+                for (var i = 0; i < particles.length; i++)
+                    particles[i] = new Particle();
+            }
+            ParticlePool.prototype.add = function(x, y, dx, dy) {
+                particles[firstFree].initialize(x, y, dx, dy);
+                firstFree++;
+                if (firstFree == particles.length) firstFree = 0;
+                if (firstActive == firstFree) firstActive++;
+                if (firstActive == particles.length) firstActive = 0;
+            };
+            ParticlePool.prototype.update = function(deltaTime) {
+                var i;
+                if (firstActive < firstFree) {
+                    for (i = firstActive; i < firstFree; i++)
+                        particles[i].update(deltaTime);
+                }
+                if (firstFree < firstActive) {
+                    for (i = firstActive; i < particles.length; i++)
+                        particles[i].update(deltaTime);
+                    for (i = 0; i < firstFree; i++)
+                        particles[i].update(deltaTime);
+                }
+                while (particles[firstActive].age >= duration && firstActive != firstFree) {
+                    firstActive++;
+                    if (firstActive == particles.length) firstActive = 0;
+                }
+            };
+            ParticlePool.prototype.draw = function(context, image) {
+                if (firstActive < firstFree) {
+                    for (i = firstActive; i < firstFree; i++)
+                        particles[i].draw(context, image);
+                }
+                if (firstFree < firstActive) {
+                    for (i = firstActive; i < particles.length; i++)
+                        particles[i].draw(context, image);
+                    for (i = 0; i < firstFree; i++)
+                        particles[i].draw(context, image);
+                }
+            };
+            return ParticlePool;
+        })();
+
+        (function(canvas) {
+            var context = canvas.getContext('2d'),
+                particles = new ParticlePool(settings.particles.length),
+                particleRate = settings.particles.length / settings.particles.duration,
+                time;
+            function pointOnHeart(t) {
+                return new Point(
+                    160 * Math.pow(Math.sin(t), 3),
+                    130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
+                );
+            }
+            var image = (function() {
+                var canvas = document.createElement('canvas'),
+                    context = canvas.getContext('2d');
+                canvas.width = settings.particles.size;
+                canvas.height = settings.particles.size;
+                function to(t) {
+                    var point = pointOnHeart(t);
+                    point.x = settings.particles.size / 2 + point.x * settings.particles.size / 350;
+                    point.y = settings.particles.size / 2 - point.y * settings.particles.size / 350;
+                    return point;
+                }
+                context.beginPath();
+                var t = -Math.PI;
+                var point = to(t);
+                context.moveTo(point.x, point.y);
+                while (t < Math.PI) {
+                    t += 0.01;
+                    point = to(t);
+                    context.lineTo(point.x, point.y);
+                }
+                context.closePath();
+                context.fillStyle = '#ea80b0';
+                context.fill();
+                var image = new Image();
+                image.src = canvas.toDataURL();
+                return image;
+            })();
+            function render() {
+                requestAnimationFrame(render);
+                var newTime = new Date().getTime() / 1000,
+                    deltaTime = newTime - (time || newTime);
+                time = newTime;
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                var amount = particleRate * deltaTime;
+                for (var i = 0; i < amount; i++) {
+                    var pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
+                    var dir = pos.clone().length(settings.particles.velocity);
+                    particles.add(canvas.width / 2 + pos.x, canvas.height / 2 - pos.y, dir.x, -dir.y);
+                }
+                particles.update(deltaTime);
+                particles.draw(context, image);
+            }
+            function onResize() {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+            }
+            window.onresize = onResize;
+            setTimeout(function() {
+                onResize();
+                render();
+            }, 10);
+        })(document.getElementById('pinkboard'));
+
+        // Heart cursor effect
+        var colours = new Array('#f00', '#f06', '#f0f', '#f6f', '#f39', '#f9c');
+        var minisize = 10;
+        var maxisize = 20;
+        var hearts = 100;
+        var over_or_under = "over";
+        var x = ox = 400;
+        var y = oy = 300;
+        var swide = 800;
+        var shigh = 600;
+        var sleft = sdown = 0;
+        var herz = new Array();
+        var herzx = new Array();
+        var herzy = new Array();
+        var herzs = new Array();
+        var kiss = false;
+
+        if (typeof('addRVLoadEvent')!='function') function addRVLoadEvent(funky) {
+            var oldonload = window.onload;
+            if (typeof(oldonload)!='function') window.onload = funky;
+            else window.onload = function() {
+                if (oldonload) oldonload();
+                funky();
+            }
+        }
+
+        addRVLoadEvent(mwah);
+
+        function mwah() {
+            if (document.getElementById) {
+                var i, heart;
+                for (i = 0; i < hearts; i++) {
+                    heart = createDiv("auto", "auto");
+                    heart.style.visibility = "hidden";
+                    heart.style.zIndex = (over_or_under == "over") ? "1001" : "0";
+                    heart.style.color = colours[i % colours.length];
+                    heart.style.pointerEvents = "none";
+                    if (navigator.appName == "Microsoft Internet Explorer") heart.style.filter = "alpha(opacity=75)";
+                    else heart.style.opacity = 0.45;
+                    heart.appendChild(document.createTextNode(String.fromCharCode(9829)));
+                    document.body.appendChild(heart);
+                    herz[i] = heart;
+                    herzy[i] = false;
+                }
+                set_scroll();
+                set_width();
+                herzle();
+            }
+        }
+
+        function herzle() {
+            var c;
+            if (Math.abs(x - ox) > 1 || Math.abs(y - oy) > 1) {
+                ox = x;
+                oy = y;
+                for (c = 0; c < hearts; c++) if (herzy[c] === false) {
+                    herz[c].firstChild.nodeValue = String.fromCharCode(9829);
+                    herz[c].style.left = (herzx[c] = x - minisize / 2) + "px";
+                    herz[c].style.top = (herzy[c] = y - minisize) + "px";
+                    herz[c].style.fontSize = minisize + "px";
+                    herz[c].style.fontWeight = 'normal';
+                    herz[c].style.visibility = 'visible';
+                    herzs[c] = minisize;
+                    break;
+                }
+            }
+            for (c = 0; c < hearts; c++) if (herzy[c] !== false) blow_me_a_kiss(c);
+            setTimeout("herzle()", 30);
+        }
+
+        document.onmousedown = pucker;
+        document.onmouseup = function() { clearTimeout(kiss); };
+
+        function pucker() {
+            ox = -1;
+            oy = -1;
+            kiss = setTimeout('pucker()', 100);
+        }
+
+        function blow_me_a_kiss(i) {
+            herzy[i] -= herzs[i] / minisize + i % 2;
+            herzx[i] += (i % 5 - 2) / 5;
+            if (herzy[i] < sdown - herzs[i] || herzx[i] < sleft - herzs[i] || herzx[i] > sleft + swide - herzs[i]) {
+                herz[i].style.visibility = "hidden";
+                herzy[i] = false;
+            } else if (herzs[i] > minisize + 1 && Math.random() < 2.5 / hearts) break_my_heart(i);
+            else {
+                if (Math.random() < maxisize / herzy[i] && herzs[i] < maxisize) herz[i].style.fontSize = (++herzs[i]) + "px";
+                herz[i].style.top = herzy[i] + "px";
+                herz[i].style.left = herzx[i] + "px";
+            }
+        }
+
+        function break_my_heart(i) {
+            var t;
+            herz[i].firstChild.nodeValue = String.fromCharCode(9676);
+            herz[i].style.fontWeight = 'bold';
+            herzy[i] = false;
+            for (t = herzs[i]; t <= maxisize; t++) setTimeout('herz['+i+'].style.fontSize="'+t+'px"', 60 * (t - herzs[i]));
+            setTimeout('herz['+i+'].style.visibility="hidden";', 60 * (t - herzs[i]));
+        }
+
+        document.onmousemove = mouse;
+        function mouse(e) {
+            if (e) {
+                y = e.pageY;
+                x = e.pageX;
+            } else {
+                set_scroll();
+                y = event.y + sdown;
+                x = event.x + sleft;
+            }
+        }
+
+        window.onresize = set_width;
+        function set_width() {
+            var sw_min = 999999;
+            var sh_min = 999999;
+            if (document.documentElement && document.documentElement.clientWidth) {
+                if (document.documentElement.clientWidth > 0) sw_min = document.documentElement.clientWidth;
+                if (document.documentElement.clientHeight > 0) sh_min = document.documentElement.clientHeight;
+            }
+            if (typeof(self.innerWidth) == 'number' && self.innerWidth) {
+                if (self.innerWidth > 0 && self.innerWidth < sw_min) sw_min = self.innerWidth;
+                if (self.innerHeight > 0 && self.innerHeight < sh_min) sh_min = self.innerHeight;
+            }
+            if (document.body.clientWidth) {
+                if (document.body.clientWidth > 0 && document.body.clientWidth < sw_min) sw_min = document.body.clientWidth;
+                if (document.body.clientHeight > 0 && document.body.clientHeight < sh_min) sh_min = document.body.clientHeight;
+            }
+            if (sw_min == 999999 || sh_min == 999999) {
+                sw_min = 800;
+                sh_min = 600;
+            }
+            swide = sw_min;
+            shigh = sh_min;
+        }
+
+        window.onscroll = set_scroll;
+        function set_scroll() {
+            if (typeof(self.pageYOffset) == 'number') {
+                sdown = self.pageYOffset;
+                sleft = self.pageXOffset;
+            } else if (document.body && (document.body.scrollTop || document.body.scrollLeft)) {
+                sdown = document.body.scrollTop;
+                sleft = document.body.scrollLeft;
+            } else if (document.documentElement && (document.documentElement.scrollTop || document.documentElement.scrollLeft)) {
+                sleft = document.documentElement.scrollLeft;
+                sdown = document.documentElement.scrollTop;
+            } else {
+                sdown = 0;
+                sleft = 0;
+            }
+        }
+
+        function createDiv(height, width) {
+            var div = document.createElement("div");
+            div.style.position = "absolute";
+            div.style.height = height;
+            div.style.width = width;
+            div.style.overflow = "hidden";
+            div.style.backgroundColor = "transparent";
+            return div;
+        }
+
+        // Audio error handling
+        const audio = document.getElementById('backgroundMusic');
+        audio.addEventListener('error', () => {
+            console.error('Không thể tải tệp âm thanh sn1.mp3. Vui lòng kiểm tra đường dẫn hoặc định dạng.');
+        });
+
+        // Ensure audio plays on user interaction for browsers with autoplay restrictions
+        document.body.addEventListener('click', () => {
+            audio.play().catch(err => {
+                console.error('Lỗi khi phát âm thanh:', err);
+            });
+        });
+    </script>
+</body>
+</html>
